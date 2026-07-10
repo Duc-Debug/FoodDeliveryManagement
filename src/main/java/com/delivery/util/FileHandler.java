@@ -8,6 +8,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Function;
 
+import com.delivery.model.MenuItem;
+
 /**
  * Generic file utility for text/csv persistence helpers.
  */
@@ -42,5 +44,9 @@ public class FileHandler {
     }
     public static <T> List<T> readToCsv(Path path, Function<String, T>csvParser) throws IOException{
       return  readFromTextFile(path, csvParser);
+    }
+    public static void writeToCsv(Path filePath, List<MenuItem> all, Object csvMapper) {
+        // TODO Auto-generated method stub
+        throw new UnsupportedOperationException("Unimplemented method 'writeToCsv'");
     }
 }
