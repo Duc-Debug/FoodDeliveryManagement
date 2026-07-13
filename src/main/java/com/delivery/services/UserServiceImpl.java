@@ -24,17 +24,10 @@ public class UserServiceImpl implements IUserService {
     }
 
     @Override
-    public void registerCustomer(Customer customer) throws Exception {
-        validateCanRegister(customer);
-        userRepository.create(customer);
-        saveToFile(customer.getId());
-    }
-
-    @Override
-    public void registerMerchant(Merchant merchant) throws Exception {
-        validateCanRegister(merchant);
-        userRepository.create(merchant);
-        saveToFile(merchant.getId());
+    public void registerUser(User user) throws Exception {
+        validateCanRegister(user);
+        userRepository.create(user);
+        saveToFile(user.getId());
     }
 
     @Override
@@ -43,12 +36,12 @@ public class UserServiceImpl implements IUserService {
         if (user == null) {
             throw new NotFoundException("User Not found: " + id);
         }
+        user.getDetails();
         return user;
     }
 
     @Override
     public List<User> getAllUser() {
-        // TODO Auto-generated method stub
         return userRepository.readAll();
     }
 
@@ -89,15 +82,11 @@ public class UserServiceImpl implements IUserService {
         if (user.getBalance() < 0) {
             throw new ValidationException("User balance is not minus!", "INVALID_INPUT");
         }
-
-        // 2. ÁP DỤNG PATTERN MATCHING: Kiểm tra luật riêng của từng vai trò lớp con
         if (user instanceof Customer customer) {
-            // Khách hàng thì bắt buộc phải nhập địa chỉ để giao hàng
             if (customer.getAddress() == null || customer.getAddress().isBlank()) {
                 throw new ValidationException("Customer Address is requied!", "INVALID_INPUT");
             }
         } else if (user instanceof Merchant merchant) {
-            // Chủ quán thì bắt buộc phải có tên cửa hàng
             if (merchant.getStoreName() == null || merchant.getStoreName().isBlank()) {
                 throw new ValidationException("Merchant name store is requied!", "INVALID_INPUT");
             }
@@ -135,7 +124,7 @@ public class UserServiceImpl implements IUserService {
                 userRepository.create(user);
             }
         } catch (Exception e) {
-            System.out.println("Not found the Csv");
+            System.out.println("Not found the Csv"+ e.getMessage());
         }
     }
 
