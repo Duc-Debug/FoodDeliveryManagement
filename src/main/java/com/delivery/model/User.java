@@ -3,7 +3,7 @@ import com.delivery.exception.ValidationException;;
 /**
  * Thực thể User đại diện cho định danh chung của các khách hàng trong hệ thống.
  */
-public abstract class User {
+public class User {
     private String id;
     private String name;
     private String phoneNumber;

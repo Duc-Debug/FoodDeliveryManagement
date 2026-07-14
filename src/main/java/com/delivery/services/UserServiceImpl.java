@@ -6,8 +6,6 @@ import java.util.List;
 
 import com.delivery.exception.NotFoundException;
 import com.delivery.exception.ValidationException;
-import com.delivery.model.Customer;
-import com.delivery.model.Merchant;
 import com.delivery.model.User;
 import com.delivery.repository.IRepository;
 import com.delivery.util.FileHandler;
@@ -27,7 +25,12 @@ public class UserServiceImpl implements IUserService {
     public void registerUser(User user) throws Exception {
         validateCanRegister(user);
         userRepository.create(user);
-        saveToFile(user.getId());
+        try {
+            saveToFile();
+        } catch (IOException ex) {
+            userRepository.delete(user.getId());
+            throw new IOException(ex.getMessage());
+        }
     }
 
     @Override
@@ -36,7 +39,6 @@ public class UserServiceImpl implements IUserService {
         if (user == null) {
             throw new NotFoundException("User Not found: " + id);
         }
-        user.getDetails();
         return user;
     }
 
@@ -53,17 +55,45 @@ public class UserServiceImpl implements IUserService {
         }
         user.deposit(amount);
         userRepository.update(userId, user);
-        saveToFile(userId);
+        try {
+            saveToFile();
+        } catch (IOException ex) {
+            user.deduct(amount);
+            userRepository.update(userId, user);
+            throw new IOException("Nạp thất bại: " + ex.getMessage());
+        }
     }
 
     @Override
     public void updateUser(String userId, User user) throws Exception {
+        var userOld = userRepository.readById(userId);
+        if(userOld==null) throw new NotFoundException("UserNotFound");
+        var userBackup = new User(
+                userId,
+                userOld.getName(),
+                userOld.getPhoneNumber(),
+                userOld.getBalance(),
+                userOld.getAddress());
         userRepository.update(userId, user);
+        try {
+            saveToFile();
+        } catch (IOException ex) {
+            userRepository.update(userId, userBackup);
+            throw new IOException(ex.getMessage());
+        }
     }
 
     @Override
     public void deleteUser(String id) throws Exception {
+        var userBackup = userRepository.readById(id);
+        if(userBackup ==null) throw new NotFoundException("Not Found User");
         userRepository.delete(id);
+        try {
+            saveToFile();
+        } catch (Exception ex) {
+            userRepository.create(userBackup);
+            throw new Exception("Xóa thất bại: "+ex.getMessage());
+        }
     }
 
     private void validateCanRegister(User user) {
@@ -72,6 +102,12 @@ public class UserServiceImpl implements IUserService {
         }
         if (user.getId() == null || user.getId().isBlank()) {
             throw new ValidationException("User id is requied!", "INVALID_INPUT");
+        }
+        var users = userRepository.readAll();
+        for (User u : users) {
+            if (user.getId().equals(u.getId())) {
+                throw new ValidationException("User id is already existing");
+            }
         }
         if (user.getName() == null || user.getName().isBlank()) {
             throw new ValidationException("User name is requied!", "INVALID_INPUT");
@@ -88,28 +124,16 @@ public class UserServiceImpl implements IUserService {
 
     }
 
-    private void saveToFile(String createdUserId) throws Exception {
+    private void saveToFile() throws IOException {
         if (filePath == null) {
             return;
         }
-        try {
-            FileHandler.writeToCsv(filePath, userRepository.readAll(), CsvMapper::toCsvRow);
-        } catch (IOException ioException) {
-            userRepository.delete(createdUserId);
-            throw new IOException("Failed to persist user to file: " + filePath, ioException);
-        }
+        FileHandler.writeToCsv(filePath, userRepository.readAll(), CsvMapper::toCsvRow);
     }
 
     private static User parseUserCsv(String line) {
         String[] parts = line.split(",");
-        String role = parts[0];
-        if ("CUSTOMER".equalsIgnoreCase(role)) {
-            return new User(parts[1], parts[2], parts[3], Double.parseDouble(parts[4]), parts[5]);
-        } else if ("MERCHANT".equalsIgnoreCase(role)) {
-            return new Merchant(parts[1], parts[2], parts[3], Double.parseDouble(parts[4]), parts[5],
-                    Double.parseDouble(parts[6]), Integer.parseInt(parts[7]));
-        }
-        throw new IllegalArgumentException("Data role not accept in file" + role);
+        return new User(parts[0], parts[1], parts[2], Double.parseDouble(parts[3]), parts[4]);
     }
 
     private void loadDataFromCsv() {
