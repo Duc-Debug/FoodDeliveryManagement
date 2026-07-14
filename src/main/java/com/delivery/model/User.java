@@ -1,7 +1,7 @@
 package com.delivery.model;
 import com.delivery.exception.ValidationException;;
 /**
- * Lớp cha trừu tượng User đại diện cho định danh chung của mọi tài khoản trong hệ thống.
+ * Thực thể User đại diện cho định danh chung của các khách hàng trong hệ thống.
  */
 public abstract class User {
     private String id;

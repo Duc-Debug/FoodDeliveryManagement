@@ -15,8 +15,7 @@ public class Food extends MenuItem {
 
     @Override
     public String getDetailDescription() {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'getDetailDescription'");
+ return String.format("[%s] %s - Giá: %,.0f VNĐ | %s | %s |Đồ chay: %b", getId(), getName(), getBasePrice(), getDescription(),getPortionSize(),isVegetarian());
     }
 
     public String getPortionSize() {

@@ -4,6 +4,10 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.delivery.model.*;
+/**
+ * Lớp tiện ích chịu trách nhiệm chuyển đổi (Mapping) các đối tượng RAM sang chuỗi CSV phẳng.
+ * Gom toàn bộ logic xử lý chuỗi bẩn về một mối.
+ */
 public final class CsvMapper{
     private CsvMapper() {}
     public static String toCsvRow(User user) {
@@ -16,14 +20,39 @@ public final class CsvMapper{
             );
     }
     public static String toCsvRow(MenuItem item) {
-        return String.join(",", "MENU_ITEM",
-                csvEscape(item.getId()),
-                csvEscape(item.getName()),
-                String.valueOf((item.getBasePrice())),
-                csvEscape(item.getDescription())
-        );
+        if (item == null) return "";
+
+        // Tình huống 1: Mặt hàng là Đồ ăn
+        if (item instanceof Food f) {
+            return String.join(",", 
+                "FOOD", // Cờ hiệu nhận diện loại ở đầu dòng
+                csvEscape(f.getId()), 
+                csvEscape(f.getName()),
+                String.valueOf(f.getBasePrice()), 
+                csvEscape(f.getDescription()), 
+                csvEscape(f.getPortionSize()), 
+                String.valueOf(f.isVegetarian())
+            );
+        }
+
+        // Tình huống 2: Mặt hàng là Đồ uống
+        if (item instanceof Drink d) {
+            return String.join(",", 
+                "DRINK",
+                csvEscape(d.getId()), 
+                csvEscape(d.getName()),
+                String.valueOf(d.getBasePrice()), 
+                csvEscape(d.getDescription()), 
+                csvEscape(d.getSize()), 
+                String.valueOf(d.getDefaultSurgarLevel()), 
+                String.valueOf(d.getDefaultIceLevel())
+            );
+        }
+
+        return "";
     }
     public static String toCsvRow(Order order){
+        if(order ==null) return"";
         List<String> itemTokens = new ArrayList<>();
         for (OrderItem item: order.getItems()){
             String token = item.getMenuItem().getId() + ":" +item.getQuantity();
@@ -33,7 +62,6 @@ public final class CsvMapper{
        return String.join(",",
                 order.getOrderId(),
                 order.getCustomer().getId(),
-                order.getMerchant().getId(),
                 itemsCompressed, 
                 String.valueOf(order.getShippingFee()),
                 String.valueOf(order.getDiscount()),

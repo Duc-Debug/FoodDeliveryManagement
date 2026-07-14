@@ -82,15 +82,10 @@ public class UserServiceImpl implements IUserService {
         if (user.getBalance() < 0) {
             throw new ValidationException("User balance is not minus!", "INVALID_INPUT");
         }
-        if (user instanceof Customer customer) {
-            if (customer.getAddress() == null || customer.getAddress().isBlank()) {
-                throw new ValidationException("Customer Address is requied!", "INVALID_INPUT");
-            }
-        } else if (user instanceof Merchant merchant) {
-            if (merchant.getStoreName() == null || merchant.getStoreName().isBlank()) {
-                throw new ValidationException("Merchant name store is requied!", "INVALID_INPUT");
-            }
+        if (user.getAddress() == null || user.getAddress().isBlank()) {
+            throw new ValidationException("Customer Address is requied!", "INVALID_INPUT");
         }
+
     }
 
     private void saveToFile(String createdUserId) throws Exception {
@@ -109,7 +104,7 @@ public class UserServiceImpl implements IUserService {
         String[] parts = line.split(",");
         String role = parts[0];
         if ("CUSTOMER".equalsIgnoreCase(role)) {
-            return new Customer(parts[1], parts[2], parts[3], Double.parseDouble(parts[4]), parts[5]);
+            return new User(parts[1], parts[2], parts[3], Double.parseDouble(parts[4]), parts[5]);
         } else if ("MERCHANT".equalsIgnoreCase(role)) {
             return new Merchant(parts[1], parts[2], parts[3], Double.parseDouble(parts[4]), parts[5],
                     Double.parseDouble(parts[6]), Integer.parseInt(parts[7]));
@@ -124,7 +119,7 @@ public class UserServiceImpl implements IUserService {
                 userRepository.create(user);
             }
         } catch (Exception e) {
-            System.out.println("Not found the Csv"+ e.getMessage());
+            System.out.println("Not found the Csv" + e.getMessage());
         }
     }
 

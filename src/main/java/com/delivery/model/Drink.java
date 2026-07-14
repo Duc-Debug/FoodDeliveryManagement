@@ -9,13 +9,12 @@ private int defaultIceLevel;
 public Drink(String id, String name, double basePrice, String description,String size, int defaultSurgarLevel, int defaultIceLevel) {
     super(id, name, basePrice, description);
     this.size = size;
-    this.defaultIceLevel = defaultIceLevel;
     this.defaultSurgarLevel = defaultSurgarLevel;
+    this.defaultIceLevel = defaultIceLevel;
 }
     @Override
     public String getDetailDescription() {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'getDetailDescription'");
+       return String.format("[%s] %s - Giá: %,.0f VNĐ | %s | Size: %s |Đường: %03d % |Đá: %03d % ", getId(), getName(), getBasePrice(), getDescription(), getSize(),getDefaultSurgarLevel(),getDefaultIceLevel());
     }
     public String getSize() {
         return size;
