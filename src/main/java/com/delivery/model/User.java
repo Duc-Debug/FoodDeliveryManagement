@@ -9,17 +9,23 @@ public abstract class User {
     private String phoneNumber;
     protected double balance; 
 
-    public User(String id, String name, String phoneNumber) {
+     private String address;
+    private Cart cart; 
+    public User(String id, String name, String phoneNumber,String address) {
         this.id = id;
         this.name = name;
         this.phoneNumber = phoneNumber;
         this.balance = 0.0;
+         this.address = address;
+        this.cart = new Cart();
     }
-    public User(String id, String name, String phoneNumber, double initialBalance) {
+    public User(String id, String name, String phoneNumber, double initialBalance,String address) {
         this.id = id;
         this.name = name;
         this.phoneNumber = phoneNumber;
         this.balance = initialBalance;
+         this.address = address;
+        this.cart = new Cart();
     }
 
     public double getBalance() {
@@ -42,7 +48,10 @@ public abstract class User {
         this.balance -= amount;
     }
 
-    public abstract String getDetails();
+   public String getDetails() {
+        return String.format("[KHÁCH HÀNG] ID: %s | Tên: %s | SĐT: %s | Địa chỉ: %s | Số dư ví: %,.0f VNĐ",
+                getId(), getName(), getPhoneNumber(), address, getBalance());
+    }
 
     public String getId() {
         return id;
@@ -66,5 +75,20 @@ public abstract class User {
 
     public void setPhoneNumber(String phoneNumber) {
         this.phoneNumber = phoneNumber;
+    }
+    
+    public String getAddress() {
+        return address;
+    }
+
+    public void setAddress(String address) {
+        this.address = address;
+    }
+
+    public Cart getCart() {
+        return cart;
+    }
+    public void setCart(Cart cart) {
+        this.cart = cart;
     }
 }

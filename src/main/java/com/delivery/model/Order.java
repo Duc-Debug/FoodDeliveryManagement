@@ -9,8 +9,7 @@ import java.util.List;
  */
 public class Order {
     private String orderId;
-    private Customer customer;
-    private Merchant merchant;
+    private User customer;
     private List<OrderItem> items; 
     private OrderState state;
     private double shippingFee;
@@ -19,10 +18,9 @@ public class Order {
     private int rating;            
     private String comment;      
 
-    public Order(String orderId, Customer customer, Merchant merchant, List<OrderItem> items, double shippingFee, double discount) {
+    public Order(String orderId, User customer, List<OrderItem> items, double shippingFee, double discount) {
         this.orderId = orderId;
         this.customer = customer;
-        this.merchant = merchant;
         this.items = items;
         this.state = OrderState.CREATED; 
         this.shippingFee = shippingFee;
@@ -32,10 +30,9 @@ public class Order {
         calculateTotalPrice();          
     }
 
-    public Order(String orderId, Customer customer, Merchant merchant, List<OrderItem> items, OrderState state, double shippingFee, double discount, double totalPrice, int rating, String comment) {
+    public Order(String orderId, User customer, List<OrderItem> items, OrderState state, double shippingFee, double discount, double totalPrice, int rating, String comment) {
         this.orderId = orderId;
         this.customer = customer;
-        this.merchant = merchant;
         this.items = items;
         this.state = state;
         this.shippingFee = shippingFee;
@@ -80,8 +77,6 @@ public class Order {
         }
         this.rating = rating;
         this.comment = comment;
-        
-        this.merchant.updateAverageRating(rating);
     }
 
     public String getOrderId() {
@@ -90,22 +85,6 @@ public class Order {
 
     public void setOrderId(String orderId) {
         this.orderId = orderId;
-    }
-
-    public Customer getCustomer() {
-        return customer;
-    }
-
-    public void setCustomer(Customer customer) {
-        this.customer = customer;
-    }
-
-    public Merchant getMerchant() {
-        return merchant;
-    }
-
-    public void setMerchant(Merchant merchant) {
-        this.merchant = merchant;
     }
 
     public List<OrderItem> getItems() {
@@ -149,5 +128,13 @@ public class Order {
 
     public String getComment() {
         return comment;
+    }
+
+    public User getCustomer() {
+        return customer;
+    }
+
+    public void setCustomer(User customer) {
+        this.customer = customer;
     }
 }

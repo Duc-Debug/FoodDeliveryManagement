@@ -7,32 +7,17 @@ import com.delivery.model.*;
 public final class CsvMapper{
     private CsvMapper() {}
     public static String toCsvRow(User user) {
-        if (user instanceof Customer c) {
             return String.join(",", "CUSTOMER", 
-                csvEscape(c.getId()), 
-                csvEscape(c.getName()),
-                csvEscape(c.getPhoneNumber()), 
-                String.valueOf(c.getBalance()), 
-                csvEscape(c.getAddress())
+                csvEscape(user.getId()), 
+                csvEscape(user.getName()),
+                csvEscape(user.getPhoneNumber()), 
+                String.valueOf(user.getBalance()), 
+                csvEscape(user.getAddress())
             );
-        }
-        if (user instanceof Merchant m) {
-            return String.join(",", "MERCHANT", 
-                csvEscape(m.getId()), 
-                csvEscape(m.getName()),
-                csvEscape(m.getPhoneNumber()), 
-                String.valueOf(m.getBalance()), 
-                csvEscape(m.getStoreName()),
-                String.valueOf(m.getAverageRating()), 
-                String.valueOf(m.getTotalReviews())
-            );
-        }
-        return "";
     }
     public static String toCsvRow(MenuItem item) {
         return String.join(",", "MENU_ITEM",
                 csvEscape(item.getId()),
-                csvEscape(item.getMerchantId()),
                 csvEscape(item.getName()),
                 String.valueOf((item.getBasePrice())),
                 csvEscape(item.getDescription())
