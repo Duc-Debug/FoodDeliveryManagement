@@ -37,11 +37,10 @@ public class OrderServiceImpl implements IOrderService {
             throw new ValidationException("Không thể thanh toán! Giỏ hàng hiện tại đang trống rỗng.", "EMPTY_CART");
         }
 
-        Customer customer = (Customer) userRepository.readById(customerId);
-        Merchant merchant = (Merchant) userRepository.readById(merchantId);
+        User customer = userRepository.readById(customerId);
 
         List<OrderItem> orderItems = new ArrayList<>(cart.getItems());
-        Order order = new Order(orderId, customer, merchant, orderItems, shippingFee, 0.0);
+        Order order = new Order(orderId, customer, orderItems, shippingFee, 0.0);
 
         double discountAmount = 0.0;
         if (discountStrategy != null) {
@@ -115,7 +114,6 @@ public class OrderServiceImpl implements IOrderService {
         try {
             FileHandler.writeToCsv(orderFilePath, orderRepository.readAll(), CsvMapper::toCsvRow);
         } catch (IOException ioException) {
-            orderRepository.delete(createdOrderId);
             throw new ValidationException("Failed to persist user to file: " + ioException);
         }
     }
