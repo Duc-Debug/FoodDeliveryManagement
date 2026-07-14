@@ -4,6 +4,6 @@ package com.delivery.ui;
 // click the <icon src="AllIcons.Actions.Execute"/> icon in the gutter.
 public class Main {
     static void main() {
-       AppConsole app = new AppConsole(null)
+      // AppConsole app = new AppConsole(null)
     }
 }

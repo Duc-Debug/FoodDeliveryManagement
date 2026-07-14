@@ -5,6 +5,7 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.delivery.config.StoreConfig;
 import com.delivery.exception.*;
 import com.delivery.model.*;
 import com.delivery.repository.IRepository;
@@ -31,7 +32,7 @@ public class OrderServiceImpl implements IOrderService {
     }
 
     @Override
-    public Order checkout(String orderId, String customerId, String merchantId, Cart cart,
+    public Order checkout(String orderId, String customerId, Cart cart,
             IDiscountStrategy discountStrategy, double shippingFee) {
         if (cart.getItems().isEmpty()) {
             throw new ValidationException("Không thể thanh toán! Giỏ hàng hiện tại đang trống rỗng.", "EMPTY_CART");
@@ -48,16 +49,28 @@ public class OrderServiceImpl implements IOrderService {
         }
         order.setDiscount(discountAmount);
 
-        customer.deduct(order.getTotalPrice());
-        merchant.deposit(order.getTotalPrice());
+        double totalPrice = order.getTotalPrice();
+        customer.deduct(totalPrice);
 
         orderRepository.create(order);
         userRepository.update(customerId, customer);
-        userRepository.update(merchantId, merchant);
+        try {
+            StoreConfig.addRevenue(totalPrice);
+            StoreConfig.save();
 
-        syncOrderToFile(orderId);
-        syncUsersToFile(customerId);
+            syncOrderToFile();
+            syncUsersToFile();
+        } catch (Exception ex) {
+            customer.deposit(totalPrice);
+            userRepository.update(customerId, customer);
+            orderRepository.delete(orderId);
 
+            StoreConfig.addRevenue(-totalPrice);
+            StoreConfig.save();
+
+            throw new ValidationException("Thanh toán thất bại do lỗi hệ thống lưu trữ",
+                    "PERSISTENCE_ERROR");
+        }
         cart.clearCart();
 
         return order;
@@ -65,15 +78,25 @@ public class OrderServiceImpl implements IOrderService {
 
     @Override
     public void updateStatus(String orderId, OrderState newState) {
+        Order order = orderRepository.readById(orderId);
+        if (order == null) {
+            throw new NotFoundException("Không tìm thấy đơn hàng: " + orderId);
+        }
+
+        OrderState oldState = order.getState();
         try {
-            Order order = orderRepository.readById(orderId);
-
             order.updateState(newState);
-
             orderRepository.update(orderId, order);
-            syncOrderToFile(orderId);
+            syncOrderToFile();
+        } catch (InvalidStateException e) {
+            throw e;
         } catch (Exception e) {
-            throw new ValidationException(" Update fail " + e);
+            try {
+                order.updateState(oldState);
+                orderRepository.update(orderId, order);
+            } catch (Exception ignored) {
+            }
+            throw new ValidationException("Cập nhật trạng thái thất bại: " + e.getMessage(), "UPDATE_FAILED");
         }
     }
 
@@ -92,22 +115,29 @@ public class OrderServiceImpl implements IOrderService {
 
     @Override
     public void submitReview(String orderId, int rating, String comment) {
+        Order order = orderRepository.readById(orderId);
+        if (order == null)
+            throw new NotFoundException("Not Found Order: " + orderId);
+        int oldRating = order.getRating();
+        String oldComment = order.getComment();
         try {
-            Order order = orderRepository.readById(orderId);
-            if (order == null)
-                throw new NotFoundException("Not Found Order: " + orderId);
             order.submitReview(rating, comment);
             orderRepository.update(order.getOrderId(), order);
-            userRepository.update(order.getMerchant().getId(), order.getMerchant());
 
-            syncOrderToFile(orderId);
-            syncUsersToFile(order.getMerchant().getId());
+            syncOrderToFile();
+        } catch (InvalidStateException | ValidationException e) {
+            throw e;
         } catch (Exception e) {
-            throw new ValidationException("Not submit"+e);
+            try {
+                order.submitReview(oldRating, oldComment);
+                orderRepository.update(orderId, order);
+            } catch (Exception ignored) {
+            }
+            throw new ValidationException("Gửi đánh giá thất bại do lỗi hệ thống: " + e.getMessage(), "REVIEW_FAILED");
         }
     }
 
-    private void syncOrderToFile(String createdOrderId) {
+    private void syncOrderToFile() {
         if (orderFilePath == null) {
             return;
         }
@@ -118,7 +148,7 @@ public class OrderServiceImpl implements IOrderService {
         }
     }
 
-    private void syncUsersToFile(String createdUserId) {
+    private void syncUsersToFile() {
         if (userFilePath == null)
             return;
         try {
@@ -132,29 +162,29 @@ public class OrderServiceImpl implements IOrderService {
         String[] parts = line.split(",");
 
         String orderId = parts[0];
-        Customer customer = (Customer) userRepository.readById(parts[1]);
-        Merchant merchant = (Merchant) userRepository.readById(parts[2]);
+        User customer = userRepository.readById(parts[1].trim());
 
-        String itemsCompressed = parts[3];
+        String itemsCompressed = parts[2].trim();
         List<OrderItem> orderItems = new ArrayList<>();
 
-        String[] itemTokens = itemsCompressed.split("\\|");
-        for (String token : itemTokens) {
-            String[] itemParts = token.split(":");
-            String menuItemId = itemParts[0];
-            int quantity = Integer.parseInt(itemParts[1]);
-            MenuItem menuItem = menuRepository.readById(menuItemId);
-            orderItems.add(new OrderItem(menuItem, quantity));
+        if (!itemsCompressed.isBlank() && !"NONE".equals(itemsCompressed)) {
+            String[] itemTokens = itemsCompressed.split("\\|");
+            for (String token : itemTokens) {
+                String[] itemParts = token.split(":");
+                String menuItemId = itemParts[0];
+                int quantity = Integer.parseInt(itemParts[1]);
+                MenuItem menuItem = menuRepository.readById(menuItemId);
+                orderItems.add(new OrderItem(menuItem, quantity));
+            }
         }
+        double shippingFee = Double.parseDouble(parts[3]);
+        double discount = Double.parseDouble(parts[4]);
+        double totalPrice = Double.parseDouble(parts[5]);
+        OrderState state = OrderState.valueOf(parts[6]);
+        int rating = Integer.parseInt(parts[7]);
+        String comment = parts[8].equals("NONE") ? "" : parts[8];
 
-        double shippingFee = Double.parseDouble(parts[4]);
-        double discount = Double.parseDouble(parts[5]);
-        double totalPrice = Double.parseDouble(parts[6]);
-        OrderState state = OrderState.valueOf(parts[7]);
-        int rating = Integer.parseInt(parts[8]);
-        String comment = parts[9].equals("NONE") ? "" : parts[9];
-
-        return new Order(orderId, customer, merchant, orderItems, state, shippingFee, discount, totalPrice, rating,
+        return new Order(orderId, customer, orderItems, state, shippingFee, discount, totalPrice, rating,
                 comment);
     }
 

@@ -8,7 +8,7 @@ import com.delivery.model.OrderState;
 import com.delivery.services.strategy.IDiscountStrategy;
 
 public interface IOrderService {
-Order checkout(String orderId,String customerId,String merchantId, Cart cart, IDiscountStrategy discountStrategy, double shippingFee);
+Order checkout(String orderId,String customerId, Cart cart, IDiscountStrategy discountStrategy, double shippingFee);
 List<Order> getAllOrders();
 void updateStatus(String orderId, OrderState newState);
 
