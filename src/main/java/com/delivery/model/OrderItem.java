@@ -11,19 +11,21 @@ public class OrderItem {
 
     public OrderItem(MenuItem menuItem, int qty) {
         if (qty <= 0) {
-            throw new ValidationException("Số lượng món ăn đặt mua phải lớn hơn 0!", "INVALID_INPUT");
+            throw new ValidationException("The order quantity must be greater than 0!", "INVALID_INPUT");
         }
         this.menuItem = menuItem;
-        this.quantity = qty; 
+        this.quantity = qty;
     }
 
     public OrderItem() {
     }
 
     public double calculateItemPrice() {
-        if (menuItem == null) return 0.0;
+        if (menuItem == null)
+            return 0.0;
         return menuItem.getBasePrice() * quantity;
     }
+
     public MenuItem getMenuItem() {
         return menuItem;
     }
@@ -38,7 +40,7 @@ public class OrderItem {
 
     public void setQuantity(int newQuantity) {
         if (newQuantity <= 0) {
-            throw new ValidationException("Số lượng món ăn đặt mua phải lớn hơn 0!", "INVALID_INPUT");
+            throw new ValidationException("The order quantity must be greater than 0!", "INVALID_INPUT");
         }
         this.quantity = newQuantity;
     }

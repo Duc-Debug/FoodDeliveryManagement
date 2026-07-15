@@ -1,4 +1,5 @@
 package com.delivery.model;
+
 /*
 Lớp con Food kế thừa từ lớp che MenuItem thể hiện các món ăn.
  */
@@ -15,7 +16,8 @@ public class Food extends MenuItem {
 
     @Override
     public String getDetailDescription() {
- return String.format("[%s] %s - Giá: %,.0f VNĐ | %s | %s |Đồ chay: %b", getId(), getName(), getBasePrice(), getDescription(),getPortionSize(),isVegetarian());
+        return String.format("[%s] %s - Price: %,.0f VND | %s | %s | Vegetarian: %b",
+                getId(), getName(), getBasePrice(), getDescription(), getPortionSize(), isVegetarian());
     }
 
     public String getPortionSize() {
@@ -34,5 +36,4 @@ public class Food extends MenuItem {
         this.isVegetarian = isVegetarian;
     }
 
-    
 }

@@ -35,7 +35,7 @@ public class OrderServiceImpl implements IOrderService {
     public Order checkout(String orderId, String customerId, Cart cart,
             IDiscountStrategy discountStrategy, double shippingFee) {
         if (cart.getItems().isEmpty()) {
-            throw new ValidationException("Không thể thanh toán! Giỏ hàng hiện tại đang trống rỗng.", "EMPTY_CART");
+            throw new ValidationException("Checkout failed! Your current cart is empty.", "EMPTY_CART");
         }
 
         User customer = userRepository.readById(customerId);
@@ -68,7 +68,7 @@ public class OrderServiceImpl implements IOrderService {
             StoreConfig.addRevenue(-totalPrice);
             StoreConfig.save();
 
-            throw new ValidationException("Thanh toán thất bại do lỗi hệ thống lưu trữ",
+            throw new ValidationException("Checkout failed due to a system storage error",
                     "PERSISTENCE_ERROR");
         }
         cart.clearCart();
@@ -80,7 +80,7 @@ public class OrderServiceImpl implements IOrderService {
     public void updateStatus(String orderId, OrderState newState) {
         Order order = orderRepository.readById(orderId);
         if (order == null) {
-            throw new NotFoundException("Không tìm thấy đơn hàng: " + orderId);
+            throw new NotFoundException("Order not found: " + orderId);
         }
 
         OrderState oldState = order.getState();
@@ -96,7 +96,7 @@ public class OrderServiceImpl implements IOrderService {
                 orderRepository.update(orderId, order);
             } catch (Exception ignored) {
             }
-            throw new ValidationException("Cập nhật trạng thái thất bại: " + e.getMessage(), "UPDATE_FAILED");
+            throw new ValidationException("Status update failed: " + e.getMessage(), "UPDATE_FAILED");
         }
     }
 
@@ -133,7 +133,8 @@ public class OrderServiceImpl implements IOrderService {
                 orderRepository.update(orderId, order);
             } catch (Exception ignored) {
             }
-            throw new ValidationException("Gửi đánh giá thất bại do lỗi hệ thống: " + e.getMessage(), "REVIEW_FAILED");
+            throw new ValidationException("Review submission failed due to a system error: " + e.getMessage(),
+                    "REVIEW_FAILED");
         }
     }
 

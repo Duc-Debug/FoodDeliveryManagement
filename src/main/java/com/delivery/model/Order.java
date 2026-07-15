@@ -5,32 +5,34 @@ import com.delivery.exception.ValidationException;
 import java.util.List;
 
 /**
- * Thực thể trung tâm Order quản lý toàn bộ vòng đời của một đơn hàng, đóng gói logic tính tiền và hệ thống đánh giá tích hợp trực tiếp.
+ * Thực thể trung tâm Order quản lý toàn bộ vòng đời của một đơn hàng, đóng gói
+ * logic tính tiền và hệ thống đánh giá tích hợp trực tiếp.
  */
 public class Order {
     private String orderId;
     private User customer;
-    private List<OrderItem> items; 
+    private List<OrderItem> items;
     private OrderState state;
     private double shippingFee;
     private double discount;
     private double totalPrice;
-    private int rating;            
-    private String comment;      
+    private int rating;
+    private String comment;
 
     public Order(String orderId, User customer, List<OrderItem> items, double shippingFee, double discount) {
         this.orderId = orderId;
         this.customer = customer;
         this.items = items;
-        this.state = OrderState.CREATED; 
+        this.state = OrderState.CREATED;
         this.shippingFee = shippingFee;
         this.discount = discount;
-        this.rating = 0;                
+        this.rating = 0;
         this.comment = "";
-        calculateTotalPrice();          
+        calculateTotalPrice();
     }
 
-    public Order(String orderId, User customer, List<OrderItem> items, OrderState state, double shippingFee, double discount, double totalPrice, int rating, String comment) {
+    public Order(String orderId, User customer, List<OrderItem> items, OrderState state, double shippingFee,
+            double discount, double totalPrice, int rating, String comment) {
         this.orderId = orderId;
         this.customer = customer;
         this.items = items;
@@ -56,24 +58,25 @@ public class Order {
 
     public void updateState(OrderState newState) {
         if (!this.state.canTransitionTo(newState)) {
-            throw new InvalidStateException("Chuyển trạng thái đơn hàng sai quy trình vận hành");
+            throw new InvalidStateException("Invalid order state transition based on the operating workflow!");
         }
         this.state = newState;
     }
 
     public void cancelOrder() {
         if (this.state != OrderState.CREATED) {
-            throw new InvalidStateException("Cửa hàng đang nấu, không thể hủy bỏ đơn hàng này!", "CANCEL_REJECTED");
+            throw new InvalidStateException("The restaurant is already preparing your order; it cannot be canceled!",
+                    "CANCEL_REJECTED");
         }
         this.state = OrderState.CANCELLED;
     }
 
     public void submitReview(int rating, String comment) {
         if (this.state != OrderState.DELIVERED) {
-            throw new InvalidStateException("Đơn hàng chưa hoàn thành giao, không thể thực hiện đánh giá!");
+            throw new InvalidStateException("Only successfully delivered orders can be reviewed!");
         }
         if (rating < 1 || rating > 5) {
-            throw new ValidationException("Số sao chấm đánh giá bắt buộc phải nằm trong khoảng từ 1 đến 5!", "INVALID_INPUT");
+            throw new ValidationException("The rating must be between 1 and 5 stars!", "INVALID_INPUT");
         }
         this.rating = rating;
         this.comment = comment;

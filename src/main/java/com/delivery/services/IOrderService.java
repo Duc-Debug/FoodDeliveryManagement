@@ -14,7 +14,4 @@ void updateStatus(String orderId, OrderState newState);
 
 Order getOrderById(String orderId);
 void submitReview(String orderId, int rating, String comment);
-/*
-List<Order> getOrdersByCustomerId(String customerId);List<Order> getOrdersByMerchantId(String merchantId);
-*/
 } 

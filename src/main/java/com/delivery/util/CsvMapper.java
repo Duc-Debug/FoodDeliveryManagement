@@ -11,7 +11,7 @@ import com.delivery.model.*;
 public final class CsvMapper{
     private CsvMapper() {}
     public static String toCsvRow(User user) {
-            return String.join(",", "CUSTOMER", 
+            return String.join(",", 
                 csvEscape(user.getId()), 
                 csvEscape(user.getName()),
                 csvEscape(user.getPhoneNumber()), 

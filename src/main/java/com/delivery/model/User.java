@@ -1,5 +1,7 @@
 package com.delivery.model;
+
 import com.delivery.exception.ValidationException;;
+
 /**
  * Thực thể User đại diện cho định danh chung của các khách hàng trong hệ thống.
  */
@@ -7,24 +9,26 @@ public class User {
     private String id;
     private String name;
     private String phoneNumber;
-    protected double balance; 
+    protected double balance;
 
-     private String address;
-    private Cart cart; 
-    public User(String id, String name, String phoneNumber,String address) {
+    private String address;
+    private Cart cart;
+
+    public User(String id, String name, String phoneNumber, String address) {
         this.id = id;
         this.name = name;
         this.phoneNumber = phoneNumber;
         this.balance = 0.0;
-         this.address = address;
+        this.address = address;
         this.cart = new Cart();
     }
-    public User(String id, String name, String phoneNumber, double initialBalance,String address) {
+
+    public User(String id, String name, String phoneNumber, double initialBalance, String address) {
         this.id = id;
         this.name = name;
         this.phoneNumber = phoneNumber;
         this.balance = initialBalance;
-         this.address = address;
+        this.address = address;
         this.cart = new Cart();
     }
 
@@ -34,22 +38,23 @@ public class User {
 
     public void deposit(double amount) {
         if (amount <= 0) {
-            throw new ValidationException("Số tiền nạp vào tài khoản phải lớn hơn 0!");
+            throw new ValidationException("Deposit amount must be greater than 0!");
         }
         this.balance += amount;
     }
+
     public void deduct(double amount) {
         if (amount <= 0) {
-            throw new ValidationException("Số tiền trừ khỏi tài khoản phải lớn hơn 0!");
+            throw new ValidationException("Deduction amount must be greater than 0!");
         }
         if (this.balance < amount) {
-            throw new ValidationException("Số dư tài khoản không đủ để thực hiện giao dịch!");
+            throw new ValidationException("Insufficient wallet balance to complete the transaction!");
         }
         this.balance -= amount;
     }
 
-   public String getDetails() {
-        return String.format("[KHÁCH HÀNG] ID: %s | Tên: %s | SĐT: %s | Địa chỉ: %s | Số dư ví: %,.0f VNĐ",
+    public String getDetails() {
+        return String.format("[CUSTOMER] ID: %s | Name: %s | Phone: %s | Address: %s | Wallet Balance: %,.0f VND",
                 getId(), getName(), getPhoneNumber(), address, getBalance());
     }
 
@@ -76,7 +81,7 @@ public class User {
     public void setPhoneNumber(String phoneNumber) {
         this.phoneNumber = phoneNumber;
     }
-    
+
     public String getAddress() {
         return address;
     }
@@ -88,6 +93,7 @@ public class User {
     public Cart getCart() {
         return cart;
     }
+
     public void setCart(Cart cart) {
         this.cart = cart;
     }

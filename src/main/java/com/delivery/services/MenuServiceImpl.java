@@ -73,7 +73,7 @@ public class MenuServiceImpl implements IMenuService {
             saveToFile();
         } catch (IOException ex) {
             menuRepository.update(menuId, backup); // Khôi phục lại trạng thái cũ trên RAM
-            throw new IOException("Cập nhật món ăn thất bại do lỗi ghi đĩa: " + ex.getMessage());
+            throw new IOException("Failed to update dish due to a disk write error: " + ex.getMessage());
         }
     }
 
@@ -91,7 +91,7 @@ public class MenuServiceImpl implements IMenuService {
                         .anyMatch(orderItem -> orderItem.getMenuItem().getId().equals(menuId));
                 if (isUsed) {
                     throw new InvalidStateException(
-                            "Không thể xóa món ăn này vì đang nằm trong đơn hàng chưa hoàn thành của ngày hôm nay!",
+                            "Cannot delete this food item because it is part of an incomplete order today!",
                             "DELETE_RESTRICTED");
                 }
             }
@@ -151,9 +151,8 @@ public class MenuServiceImpl implements IMenuService {
             int ice = Integer.parseInt(parts[7].trim());
             return new Drink(id, name, price, desc, size, sugar, ice);
         }
-        throw new IllegalArgumentException("Không xác định được loại thực phẩm: " + type);
+        throw new IllegalArgumentException("Unknown food type: " + type);
     }
-
 
     private void loadDataFromCsv() {
         try {

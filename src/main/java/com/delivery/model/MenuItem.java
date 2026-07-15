@@ -3,7 +3,8 @@ package com.delivery.model;
 import com.delivery.exception.ValidationException;
 
 /**
- * Lớp cha trừu tượng MenuItem đại diện cho định danh chung của mọi loại món ăn trong hệ thống.
+ * Lớp cha trừu tượng MenuItem đại diện cho định danh chung của mọi loại món ăn
+ * trong hệ thống.
  */
 public abstract class MenuItem {
     private String id;
@@ -13,7 +14,7 @@ public abstract class MenuItem {
 
     public MenuItem(String id, String name, double basePrice, String description) {
         if (basePrice <= 0) {
-            throw new ValidationException("Giá bán gốc của món ăn phải lớn hơn 0!", "INVALID_INPUT");
+            throw new ValidationException("The base price of the food item must be greater than 0!", "INVALID_INPUT");
         }
         this.id = id;
         this.name = name;
@@ -48,7 +49,7 @@ public abstract class MenuItem {
 
     public void setBasePrice(double basePrice) {
         if (basePrice <= 0) {
-            throw new ValidationException("Giá bán gốc của món ăn phải lớn hơn 0!", "INVALID_INPUT");
+            throw new ValidationException("The base price of the food item must be greater than 0!", "INVALID_INPUT");
         }
         this.basePrice = basePrice;
     }

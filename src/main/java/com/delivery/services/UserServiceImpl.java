@@ -60,14 +60,15 @@ public class UserServiceImpl implements IUserService {
         } catch (IOException ex) {
             user.deduct(amount);
             userRepository.update(userId, user);
-            throw new IOException("Nạp thất bại: " + ex.getMessage());
+            throw new IOException("Deposit failed: " + ex.getMessage());
         }
     }
 
     @Override
     public void updateUser(String userId, User user) throws Exception {
         var userOld = userRepository.readById(userId);
-        if(userOld==null) throw new NotFoundException("UserNotFound");
+        if (userOld == null)
+            throw new NotFoundException("UserNotFound");
         var userBackup = new User(
                 userId,
                 userOld.getName(),
@@ -86,13 +87,14 @@ public class UserServiceImpl implements IUserService {
     @Override
     public void deleteUser(String id) throws Exception {
         var userBackup = userRepository.readById(id);
-        if(userBackup ==null) throw new NotFoundException("Not Found User");
+        if (userBackup == null)
+            throw new NotFoundException("Not Found User");
         userRepository.delete(id);
         try {
             saveToFile();
         } catch (Exception ex) {
             userRepository.create(userBackup);
-            throw new Exception("Xóa thất bại: "+ex.getMessage());
+            throw new Exception("Delete failed: " + ex.getMessage());
         }
     }
 

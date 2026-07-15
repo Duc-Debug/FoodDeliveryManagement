@@ -6,6 +6,8 @@ import java.util.Scanner;
 import com.delivery.exception.NotFoundException;
 import com.delivery.exception.ValidationException;
 import com.delivery.model.Cart;
+import com.delivery.model.Drink;
+import com.delivery.model.Food;
 import com.delivery.model.MenuItem;
 import com.delivery.model.Order;
 import com.delivery.model.OrderItem;
@@ -36,13 +38,13 @@ public class AppConsole {
         boolean running = true;
         while (running) {
             System.out.println("\n=========================================");
-            System.out.println("   HỆ THỐNG QUẢN LÝ GIAO ĐỒ ĂN  ");
+            System.out.println("          FOOD DELIVERY MANAGEMENT SYSTEM          ");
             System.out.println("=========================================");
-            System.out.println("1. Vào phân hệ KHÁCH HÀNG (Customer)");
-            System.out.println("2. Vào phân hệ Admin cửa hàng");
-            System.out.println("3. Tạo tài khoản mới.");
-            System.out.println("0. Thoát hệ thống");
-            System.out.println("-----------------------------------------");
+            System.out.println("1. Access CUSTOMER subsystem");
+            System.out.println("2. Access Restaurant Admin subsystem");
+            System.out.println("3. Create a new account");
+            System.out.println("0. Exit system");
+            newLine();
 
             int choice = readIntInput();
 
@@ -51,12 +53,13 @@ public class AppConsole {
                     handleCustomer();
                     break;
                 case 2:
-                    // TODO: handleAdmin
+                    handleAdmin();
                     break;
                 case 3:
                     handleCreateUser();
+                    break;
                 case 0:
-                    System.out.println("\n[HỆ THỐNG] Tạm biệt!");
+                    System.out.println("\n[SYSTEM] Bye!");
                     running = false;
                     break;
                 default:
@@ -68,15 +71,18 @@ public class AppConsole {
     private void handleCustomer() {
         while (true) {
             try {
-                System.out.println("Please login:");
+                newLine();
                 System.out.println("1. Get all Customer");
                 System.out.println("2. Login");
+                System.out.println("0. Back to MainView");
+                System.out.print("Please login: ");
                 int input = readIntInput();
+                System.out.println("---------------------");
                 switch (input) {
                     case 1:
                         List<User> users = userService.getAllUser();
                         for (User user : users) {
-                            user.getDetails();
+                            System.out.println(user.getDetails());
                         }
                         break;
                     case 2:
@@ -87,6 +93,8 @@ public class AppConsole {
                             break;
                         }
                         customerView();
+                    case 0:
+                        return;
                     default:
                         break;
                 }
@@ -102,13 +110,13 @@ public class AppConsole {
         while (true) {
             try {
                 System.out.println(currentUser.getDetails());
-                System.out.println("1. Nạp thêm tiền vào ví");
-                System.out.println("2. Thêm món ăn vào Giỏ hàng nháp");
-                System.out.println("3. Xem giỏ hàng & Tiến hành thanh toán (Checkout)");
-                System.out.println("4. Viết đánh giá / Chấm sao đơn hàng");
-                System.out.println("5. Lịch sử đơn hàng");
-                System.out.println("6. Đăng xuất (Quay lại màn hình chính)");
-                System.out.println("====================================");
+                System.out.println("1. Deposit money into wallet");
+                System.out.println("2. Add food to draft cart");
+                System.out.println("3. View cart & Proceed to checkout");
+                System.out.println("4. Write a review / Rate an order");
+                System.out.println("5. Order history");
+                System.out.println("6. Log out (Return to main menu)");
+                newLine();
                 int input = readIntInput();
                 switch (input) {
                     case 1:
@@ -129,7 +137,7 @@ public class AppConsole {
                         break;
                     case 6:
                         currentUser = null;
-                        start();
+                        return;
                     default:
                         break;
                 }
@@ -143,7 +151,8 @@ public class AppConsole {
         System.out.println("======MENU======");
         var allItems = menuService.getAllMenuItem();
         if (allItems.isEmpty()) {
-            System.out.println("Chưa có món nào");
+            System.out.println("No items added yet");
+            newLine();
             return;
         }
 
@@ -165,7 +174,7 @@ public class AppConsole {
             } catch (Exception e) {
                 System.out.println(e.getMessage());
             }
-
+            newLine();
         }
     }
 
@@ -184,12 +193,12 @@ public class AppConsole {
                         itemPrice);
             }
             double shippingFee = 15000; // Mặc định phí ship hệ thống
-            System.out.printf("Tạm tính tiền hàng: %,.0f VNĐ | Phí giao hàng: %,.0f VNĐ\n", subTotal, shippingFee);
+            System.out.printf("Subtotal: %,.0f VND | Shipping fee: %,.0f VND\n", subTotal, shippingFee);
 
             String confirm = readStringInput(
-                    "Bạn có muốn chốt đơn thanh toán không? (Y/Yes or select any key to continue): ");
+                    "Do you want to confirm and pay? (Y/Yes or press any key to cancel): ");
             if (!"Y".equalsIgnoreCase(confirm.toUpperCase()) || !"YES".equalsIgnoreCase(confirm.toUpperCase())) {
-                System.out.println("Đã hủy quy trình thanh toán. Giỏ hàng được giữ nguyên.");
+                System.out.println("Checkout process canceled. Your cart remains unchanged.");
                 return;
             }
 
@@ -201,74 +210,313 @@ public class AppConsole {
                     shippingFee);
 
             System.out.println("\n=========================================");
-            System.out.println("   🎉 ĐẶT ĐỒ ĂN THÀNH CÔNG (CHECKOUT OK)  ");
+            System.out.println("   🎉 ORDER PLACED SUCCESSFULLY (CHECKOUT OK)  ");
             System.out.println("=========================================");
-            System.out.println("Mã đơn hàng của bạn: " + order.getOrderId());
-            System.out.printf("Số tiền được giảm giá:  -%,.0f VNĐ\n", order.getDiscount());
-            System.out.printf("TỔNG TIỀN ĐÃ KHẤU TRỪ VÍ: %,.0f VNĐ\n", order.getTotalPrice());
-            System.out.println("Trạng thái hiện tại:     " + order.getState().name());
-            System.out.println("=========================================");
+            System.out.println("Your Order ID: " + order.getOrderId());
+            System.out.printf("Discount applied: -%,.0f VND\n", order.getDiscount());
+            System.out.printf("TOTAL AMOUNT DEDUCTED FROM WALLET: %,.0f VND\n", order.getTotalPrice());
+            System.out.println("Current Status: " + order.getState().name());
+            newLine();
 
         } catch (ValidationException e) {
-            System.out.println("\n[GIAO DỊCH THẤT BẠI] Lỗi xử lý từ hệ thống: " + e.getMessage());
+            System.out.println("\n[TRANSACTION FAILED] System processing error: " + e.getLocalizedMessage()); // Hoặc
+                                                                                                              // e.getMessage()
         }
     }
 
     private void reviewOrder() {
-        System.out.println("---ĐÁNH GIÁ ĐƠN HÀNG ---");
+        System.out.println("--- RATE & REVIEW ORDER ---");
         String orderId = readStringInput("Enter Order id input to review: ");
         try {
             Order order = orderService.getOrderById(orderId);
             if (order.getState() != OrderState.DELIVERED) {
-                System.out.println("[LỖI] Đơn hàng chưa được giao thành công, không thể để lại đánh giá!");
+                System.out.println("[ERROR] Only successfully delivered orders can be reviewed!");
                 return;
             }
-            int rating = readNonIntInput("Chấm điểm uy tín (Nhập từ 1 đến 5 Sao): ");
+            int rating = readNonIntInput("Rate this order (Enter 1 to 5 Stars): ");
             while (rating > 5 || rating <= 0) {
-                System.out.println("Nhập số sao sai!");
-                rating = readNonIntInput("Nhập điểm(1--5): ");
+                System.out.println("Invalid rating!");
+                rating = readNonIntInput("Please enter a rating (1-5): ");
             }
-            String comment = readStringInput("Viết nội dung bình luận nhận xét: ");
+            String comment = readStringInput("Write your comment/review: ");
             orderService.submitReview(orderId, rating, comment);
-            System.out.println("[OK] Cảm ơn ý kiến đóng góp của bạn! Điểm uy tín của quán đã được cập nhật.");
+            System.out.println("[OK] Thank you for your feedback! The restaurant's rating has been updated.");
         } catch (NotFoundException e) {
-            System.out.println("[LỖI] Không tìm thấy mã đơn hàng này trên hệ thống!");
+            System.out.println("[ERROR] This Order ID could not be found in the system!");
         } catch (ValidationException e) {
-            System.out.println("[LỖI] Đánh giá thất bại: " + e.getMessage());
+            System.out.println("[ERROR] Review submission failed: " + e.getMessage());
         }
+        newLine();
     }
 
     private void viewOrderHistory() {
-        System.out.println("\n--- LỊCH SỬ ĐƠN HÀNG CỦA BẠN ---");
+        System.out.println("\n--- YOUR ORDER HISTORY ---");
         var allOrders = orderService.getAllOrders();
         boolean hasOrder = false;
 
         for (Order order : allOrders) {
-            // Lọc đúng mã ID của khách hiện tại
+            // Filter by the current customer's ID
             if (order.getCustomer().getId().equals(currentUser.getId())) {
                 hasOrder = true;
-                System.out.printf("Đơn: %-8s | Tổng thanh toán: %, -10.0f VNĐ | Trạng thái: %-10s | Đánh giá: %d Sao\n",
+                System.out.printf("Order: %-8s | Total Paid: %, -10.0f VND | Status: %-10s | Rating: %d Stars\n",
                         order.getOrderId(), order.getTotalPrice(), order.getState().name(), order.getRating());
             }
         }
         if (!hasOrder) {
-            System.out.println("Bạn chưa thực hiện đơn đặt hàng nào trên hệ thống.");
+            System.out.println("You have not placed any orders yet.");
+        }
+        newLine();
+    }
+
+    // ================================================
+    private void handleAdmin() {
+        while (true) {
+            try {
+                newLine();
+                System.out.println("--- ADMIN LOGIN ---");
+                String username = readStringInput("Enter Admin Username (or '0' to go back): ");
+                if ("0".equals(username)) {
+                    return;
+                }
+                String password = readStringInput("Enter Admin Password: ");
+
+                if (com.delivery.config.StoreConfig.authenticate(username, password)) {
+                    System.out.println("Login successful! Welcome Admin.");
+                    newLine();
+                    adminView();
+                    return;
+                } else {
+                    System.out.println("Invalid Username or Password! Please try again.");
+                }
+            } catch (Exception ex) {
+                System.out.println(ex.getMessage());
+            }
+        }
+    }
+
+    private void adminView() {
+        while (true) {
+            try {
+                newLine();
+                System.out.println("===== ADMIN CONTROL PANEL =====");
+                System.out.println("1. View Store Revenue (Xem doanh thu)");
+                System.out.println("2. Manage Menu ");
+                System.out.println("3. Manage Orders ");
+                System.out.println("4. Manage Promotions ");
+                System.out.println("0. Logout (Đăng xuất)");
+                System.out.print("Enter your choice: ");
+                int choice = readIntInput();
+                newLine();
+                switch (choice) {
+                    case 1:
+                        viewRevenue();
+                        break;
+                    case 2:
+                        manageMenu();
+                        break;
+                    case 3:
+                        manageOrders();
+                        break;
+                    case 4:
+                        // TODO
+                        // managePromotions();
+                        break;
+                    case 0:
+                        System.out.println("Logging out Admin account...");
+                        return; // Thoát ra ngoài handleAdmin()
+                    default:
+                        System.out.println("Invalid choice!");
+                        break;
+                }
+            } catch (Exception ex) {
+                System.out.println("Error: " + ex.getMessage());
+            }
+        }
+    }
+
+    private void viewRevenue() {
+        newLine();
+        System.out.println("===== STORE FINANCIAL REPORT =====");
+        System.out.printf("TOTAL REVENUE TILL DATE: %,.0f VNĐ\n", com.delivery.config.StoreConfig.getStoreBalance());
+        newLine();
+    }
+
+    private void manageMenu() {
+        while (true) {
+            try {
+                newLine();
+                System.out.println("--- MANAGE MENU ---");
+                System.out.println("1. Show Current Menu");
+                System.out.println("2. Add New Food (Đồ ăn)");
+                System.out.println("3. Add New Drink (Đồ uống)");
+                System.out.println("4. Delete Menu Item");
+                System.out.println("0. Back to Panel");
+                System.out.print("Enter choice: ");
+                int choice = readIntInput();
+                System.out.println("---------------------");
+
+                switch (choice) {
+                    case 1:
+                        currentMenu();
+                        break;
+                    case 2:
+                        addNewFood();
+                        break;
+                    case 3:
+                        addNewDrink();
+                        break;
+                    case 4:
+                        try {
+                            String deleteId = readStringInput("Enter MenuItem ID to delete: ");
+                            menuService.deleteMenuItem(deleteId);
+                            System.out.println("[OK] Item deleted successfully!");
+                        } catch (Exception ex) {
+                            System.out.println("Delete fail! " + ex.getMessage());
+                        }
+                        break;
+                    case 0:
+                        return;
+                    default:
+                        break;
+                }
+            } catch (Exception ex) {
+                System.out.println("[ERROR] " + ex.getMessage());
+            }
+        }
+    }
+
+    private void currentMenu() {
+        List<MenuItem> items = menuService.getAllMenuItem();
+        if (items.isEmpty()) {
+            System.out.println("Menu is empty!");
+        } else {
+            for (MenuItem item : items) {
+                System.out.println(
+                        item.getId() + " | " + item.getName() + " | " + item.getBasePrice() + " VNĐ");
+            }
+        }
+        newLine();
+    }
+
+    private void addNewFood() {
+        while (true) {
+            try {
+                String foodId = readStringInput("Enter FoodId(Or Press 0 to exit): ").trim();
+                if (foodId.trim().equals("0")) {
+                    return;
+                }
+                String foodName = readStringInput("Enter Food Name: ").trim();
+                double foodPrice = readNonDoubleInput("Enter Base Price: ");
+                String foodDesc = readStringInput("Enter Description: ");
+                String portionSize = readStringInput("Enter Portion Size(e.g. Suat don, Combo): ");
+                System.out.println("Is vegetarian?(true/false");
+                boolean isVegearian = Boolean.parseBoolean(readStringInput(""));
+                MenuItem newFood = new Food(foodId, foodName, foodPrice, foodDesc, portionSize, isVegearian);
+                menuService.createMenu(newFood);
+                System.out.println("[OK] Food created successfully!");
+                newLine();
+            } catch (Exception ex) {
+                System.out.println("[Failed] Not created Food");
+            }
+        }
+    }
+
+    private void addNewDrink() {
+        while (true) {
+            try {
+                String DrinkId = readStringInput("Enter DrinkId(Or Press 0 to exit): ");
+                if (DrinkId.equals(0)) {
+                    return;
+                }
+                String DrinkName = readStringInput("Enter Drink Name: ");
+                double DrinkPrice = readNonDoubleInput("Enter Base Price: ");
+                String DrinkDesc = readStringInput("Enter Description: ");
+                String size = readStringInput("Enter Cup Size (S/M/L): ");
+                int surgar = readNonIntInput("Enter Default Sugar level (%):");
+                int ice = readNonIntInput("Enter Default Ice level (%): ");
+                MenuItem newDrink = new Drink(DrinkId, DrinkName, DrinkPrice, DrinkDesc, size, surgar, ice);
+                menuService.createMenu(newDrink);
+                System.out.println("[OK] Drink created successfully!");
+                newLine();
+            } catch (Exception ex) {
+                System.out.println("[Failed] Not created Drink");
+            }
+        }
+    }
+
+    private void manageOrders() {
+        while (true) {
+            try {
+                newLine();
+                System.out.println("--- MANAGE ORDERS ---");
+                System.out.println("1. Show All Orders");
+                System.out.println("2. Update Order Status");
+                System.out.println("0. Back to Panel");
+                System.out.print("Enter choice: ");
+                int choice = readIntInput();
+                System.out.println("---------------------");
+
+                switch (choice) {
+                    case 1:
+
+                        break;
+                    case 2:
+                        String orderId = readStringInput("Enter Order ID to update: ");
+                        System.out.println("Choose new status:");
+                        System.out.println("1. PREPARING (Đang chuẩn bị món)");
+                        System.out.println("2. DELIVERED (Đã giao hàng thành công)");
+                        System.out.println("3. CANCELLED (Hủy đơn hàng)");
+                        System.out.print("Choose status (1-3): ");
+                        int statusChoice = readIntInput();
+
+                        OrderState newState;
+                        if (statusChoice == 1)
+                            newState = OrderState.PREPARING;
+                        else if (statusChoice == 2)
+                            newState = OrderState.DELIVERED;
+                        else
+                            newState = OrderState.CANCELLED;
+
+                        orderService.updateStatus(orderId, newState);
+                        System.out.println("[OK] Order status updated to " + newState.name());
+                        break;
+                    case 0:
+                        return;
+                    default:
+                        break;
+                }
+            } catch (Exception ex) {
+                System.out.println("[ERROR] " + ex.getMessage());
+            }
+        }
+    }
+
+    private void showAllOrders() {
+        List<Order> orders = orderService.getAllOrders();
+        if (orders.isEmpty()) {
+            System.out.println("No orders in system.");
+        } else {
+            for (Order o : orders) {
+                System.out.printf("ID: %s | Khách: %s | Tổng: %,.0f VNĐ | Trạng thái: %s\n",
+                        o.getOrderId(), o.getUser().getName(), o.getTotalPrice(), o.getState().name());
+            }
         }
     }
 
     // ============================================
     private void handleCreateUser() {
         try {
-            String id = readStringInput("User input: ");
+            String id = readStringInput("User id: ");
             String name = readStringInput("User name: ");
             String phoneNumber = readStringInput("User Phone number: ");
-            String address = readStringInput("User Address");
+            String address = readStringInput("User Address: ");
             User user = new User(id, name, phoneNumber, 100000, address);
             userService.registerUser(user);
             System.out.println("Register new User Successfully");
         } catch (Exception exception) {
             System.out.println("ERROR: " + exception.getMessage());
         }
+        newLine();
     }
 
     // ================================================
@@ -282,7 +530,7 @@ public class AppConsole {
 
     private String readStringInput(String promt) {
         while (true) {
-            System.out.println(promt);
+            System.out.print(promt);
             String value = scanner.nextLine().trim();
             if (!value.isEmpty()) {
                 return value;
@@ -293,7 +541,7 @@ public class AppConsole {
 
     private int readNonIntInput(String promt) {
         while (true) {
-            System.out.println(promt);
+            System.out.print(promt);
             String raw = scanner.nextLine().trim();
             try {
                 int value = Integer.parseInt(raw);
@@ -310,7 +558,7 @@ public class AppConsole {
 
     private double readNonDoubleInput(String promt) {
         while (true) {
-            System.out.println(promt);
+            System.out.print(promt);
             String raw = scanner.nextLine().trim();
             try {
                 double value = Double.parseDouble(raw);
@@ -323,5 +571,12 @@ public class AppConsole {
                 System.out.println("Invalid number! Try again!");
             }
         }
+    }
+
+    public static final String ANSI_GREEN = "\u001B[32m";
+    public static final String ANSI_RESET = "\u001B[0m";
+
+    private void newLine() {
+        System.out.println(ANSI_GREEN + "====================================" + ANSI_RESET);
     }
 }
