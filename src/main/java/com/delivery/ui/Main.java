@@ -10,10 +10,11 @@ import com.delivery.services.*;
 // click the <icon src="AllIcons.Actions.Execute"/> icon in the gutter.
 public class Main {
     static void main() {
+        Path storeDPath = Path.of("data","store.csv");
         Path userDataFilePath = Path.of("data", "users.csv");
         Path menuDataFilePath = Path.of("data", "menu.csv");
         Path orderDataFilePath = Path.of("data", "orders.csv");
-
+        com.delivery.config.StoreConfig.init(storeDPath);
         IRepository<User, String> userRepository = new GenericsRepository<>() {
             @Override
             protected String getId(User entity) {
@@ -32,7 +33,7 @@ public class Main {
                 return entity.getOrderId();
             }
         };
-
+        
         IUserService userService = new UserServiceImpl(userRepository, userDataFilePath);
         IMenuService menuService = new MenuServiceImpl(menuRepository, orderRepository, menuDataFilePath);
         IOrderService orderService = new OrderServiceImpl(userRepository, menuRepository, orderRepository, orderDataFilePath, userDataFilePath);

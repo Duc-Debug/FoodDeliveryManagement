@@ -32,46 +32,69 @@ public class OrderServiceImpl implements IOrderService {
     }
 
     @Override
-    public Order checkout(String orderId, String customerId, Cart cart,
-            IDiscountStrategy discountStrategy, double shippingFee) {
+    public void createOrder(String orderId, String customerId, Cart cart, double shippingFee) {
         if (cart.getItems().isEmpty()) {
             throw new ValidationException("Checkout failed! Your current cart is empty.", "EMPTY_CART");
         }
+        try {
+            List<OrderItem> orderItems = new ArrayList<>(cart.getItems());
+            Order order = new Order(orderId, customerId, orderItems, shippingFee, 0.0);
+            orderRepository.create(order);
+            syncOrderToFile();
+            syncUsersToFile();
+        } catch (ValidationException ex) {
+            orderRepository.delete(orderId);
+            throw new ValidationException(ex.getMessage());
+        }
+        cart.clearCart();
+    }
 
-        User customer = userRepository.readById(customerId);
-
-        List<OrderItem> orderItems = new ArrayList<>(cart.getItems());
-        Order order = new Order(orderId, customer, orderItems, shippingFee, 0.0);
-
+    @Override
+    public Order checkout(Order order, IDiscountStrategy discountStrategy) {
+        if (order.isPaid()==true || order.getState().equals(OrderState.DELIVERED)
+                || order.getState().equals(OrderState.CANCELLED)) {
+            throw new ValidationException("This order already checkout");
+        }
         double discountAmount = 0.0;
         if (discountStrategy != null) {
             discountAmount = discountStrategy.calculateDiscount(order);
         }
+        User customer = userRepository.readById(order.getCustomerId());
+        if(customer==null){
+            throw new NotFoundException("Not Found customer: "+ customer.getId());
+        }
         order.setDiscount(discountAmount);
 
         double totalPrice = order.getTotalPrice();
-        customer.deduct(totalPrice);
 
-        orderRepository.create(order);
-        userRepository.update(customerId, customer);
         try {
+            customer.deduct(totalPrice);
+            userRepository.update(order.getCustomerId(), customer);
+
             StoreConfig.addRevenue(totalPrice);
             StoreConfig.save();
+
+            order.setPaid(true);
+            orderRepository.update(order.getOrderId(), order);
 
             syncOrderToFile();
             syncUsersToFile();
         } catch (Exception ex) {
             customer.deposit(totalPrice);
-            userRepository.update(customerId, customer);
-            orderRepository.delete(orderId);
+            userRepository.update(order.getCustomerId(), customer);
+            
+            order.setPaid(false);
+            orderRepository.update(order.getOrderId(), order); 
 
             StoreConfig.addRevenue(-totalPrice);
             StoreConfig.save();
-
+            try {
+            syncOrderToFile(); 
+        } catch (Exception ignored) {}
+           
             throw new ValidationException("Checkout failed due to a system storage error",
                     "PERSISTENCE_ERROR");
         }
-        cart.clearCart();
 
         return order;
     }
@@ -82,7 +105,12 @@ public class OrderServiceImpl implements IOrderService {
         if (order == null) {
             throw new NotFoundException("Order not found: " + orderId);
         }
-
+        if(newState.equals(OrderState.DELIVERED) && !order.isPaid()){
+            throw new ValidationException("This orders is not paid!!");
+        }
+        if(newState.equals(OrderState.CANCELLED)&&order.isPaid()){
+            throw new ValidationException("This order is paid!! Not Cancelled");
+        }
         OrderState oldState = order.getState();
         try {
             order.updateState(newState);
@@ -163,7 +191,7 @@ public class OrderServiceImpl implements IOrderService {
         String[] parts = line.split(",");
 
         String orderId = parts[0];
-        User customer = userRepository.readById(parts[1].trim());
+        String customerId = parts[1].trim();
 
         String itemsCompressed = parts[2].trim();
         List<OrderItem> orderItems = new ArrayList<>();
@@ -184,9 +212,9 @@ public class OrderServiceImpl implements IOrderService {
         OrderState state = OrderState.valueOf(parts[6]);
         int rating = Integer.parseInt(parts[7]);
         String comment = parts[8].equals("NONE") ? "" : parts[8];
-
-        return new Order(orderId, customer, orderItems, state, shippingFee, discount, totalPrice, rating,
-                comment);
+    boolean isPaid = Boolean.parseBoolean(parts[9].trim());
+        return new Order(orderId, customerId, orderItems, state, shippingFee, discount, totalPrice, rating,
+                comment,isPaid);
     }
 
     private void loadDataFromCsv() {

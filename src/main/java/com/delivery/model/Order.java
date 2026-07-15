@@ -10,7 +10,7 @@ import java.util.List;
  */
 public class Order {
     private String orderId;
-    private User customer;
+    private String customerId;
     private List<OrderItem> items;
     private OrderState state;
     private double shippingFee;
@@ -18,23 +18,25 @@ public class Order {
     private double totalPrice;
     private int rating;
     private String comment;
+    private boolean isPaid;
 
-    public Order(String orderId, User customer, List<OrderItem> items, double shippingFee, double discount) {
+    public Order(String orderId, String customerId, List<OrderItem> items, double shippingFee, double discount) {
         this.orderId = orderId;
-        this.customer = customer;
+        this.customerId = customerId;
         this.items = items;
         this.state = OrderState.CREATED;
         this.shippingFee = shippingFee;
         this.discount = discount;
         this.rating = 0;
         this.comment = "";
+        this.isPaid=false;
         calculateTotalPrice();
     }
 
-    public Order(String orderId, User customer, List<OrderItem> items, OrderState state, double shippingFee,
-            double discount, double totalPrice, int rating, String comment) {
+    public Order(String orderId, String customerId, List<OrderItem> items, OrderState state, double shippingFee,
+            double discount, double totalPrice, int rating, String comment,boolean isPaid) {
         this.orderId = orderId;
-        this.customer = customer;
+        this.customerId = customerId;
         this.items = items;
         this.state = state;
         this.shippingFee = shippingFee;
@@ -42,6 +44,7 @@ public class Order {
         this.totalPrice = totalPrice;
         this.rating = rating;
         this.comment = comment;
+        this.isPaid = isPaid;
     }
 
     public void calculateTotalPrice() {
@@ -133,11 +136,18 @@ public class Order {
         return comment;
     }
 
-    public User getCustomer() {
-        return customer;
+    public String getCustomerId() {
+        return customerId;
     }
 
-    public void setCustomer(User customer) {
-        this.customer = customer;
+    public void setCustomerId(String customer) {
+        this.customerId = customer;
+    }
+    public boolean isPaid() {
+        return isPaid;
+    }
+
+    public void setPaid(boolean isPaid) {
+        this.isPaid = isPaid;
     }
 }

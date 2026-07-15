@@ -61,14 +61,15 @@ public final class CsvMapper{
        String itemsCompressed = String.join("|", itemTokens);
        return String.join(",",
                 order.getOrderId(),
-                order.getCustomer().getId(),
+                order.getCustomerId(),
                 itemsCompressed, 
                 String.valueOf(order.getShippingFee()),
                 String.valueOf(order.getDiscount()),
                 String.valueOf(order.getTotalPrice()),
                 order.getState().name(),
                 String.valueOf(order.getRating()),
-                order.getComment().isBlank() ? "NONE" : order.getComment()
+                order.getComment().isBlank() ? "NONE" : order.getComment(),
+                String.valueOf(order.isPaid())
         );
     }
     private static String csvEscape(String value) {
