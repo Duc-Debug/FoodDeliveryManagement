@@ -61,7 +61,7 @@ public class OrderServiceImpl implements IOrderService {
         }
         User customer = userRepository.readById(order.getCustomerId());
         if(customer==null){
-            throw new NotFoundException("Not Found customer: "+ customer.getId());
+            throw new NotFoundException("Not Found customer when checkout");
         }
         order.setDiscount(discountAmount);
 
