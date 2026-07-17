@@ -33,7 +33,7 @@ public List<T> readAll(){
 @Override
 public T readById(ID id){
     if(!storage.containsKey(id)){
-        throw new NotFoundException("Not Found: " + id);
+        throw new NotFoundException("Not Found in DA: " + id);
     }
     return storage.get(id);
 }
@@ -41,7 +41,7 @@ public T readById(ID id){
 @Override
 public void update(ID id, T entity){
     if(!storage.containsKey(id)){
-        throw new NotFoundException("Not Found: " + id);
+        throw new NotFoundException("Not Found in DA: " + id);
     }
     storage.put(id, entity);
 }
@@ -49,7 +49,7 @@ public void update(ID id, T entity){
 @Override
 public void delete(ID id){
     if(!storage.containsKey(id)){
-        throw new NotFoundException("Not Found: " + id);
+        throw new NotFoundException("Not Found in DA: " + id);
     }
     storage.remove(id);
 }

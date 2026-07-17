@@ -1,4 +1,6 @@
 # Food Delivery Management System (Java SE Console)
+<<<<<<< HEAD
+=======
 Tài liệu này hướng dẫn cách sử dụng ứng dụng Console giao đồ ăn. Ứng dụng hỗ trợ tối ưu quy trình điều hành thực đơn, duyệt đơn và quản lý doanh thu.
 
 ## 1. Mục tiêu dự án

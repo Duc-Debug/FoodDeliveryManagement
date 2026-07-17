@@ -264,4 +264,3 @@ cat data/menu.csv
 - **Hành động giả lập:** Khóa quyền ghi hoặc xóa tạm thời thư mục dữ liệu `data` (Permission Denied) rồi tiến hành thêm sản phẩm mới.
 - **Expected:** - Hệ thống ném ra lỗi liên quan đến đồng bộ file lưu trữ.
 - RAM Repo tự động dọn dẹp bản ghi nháp (Rollback thành công), sản phẩm ẩm thực vừa thêm không còn tồn tại trong bộ nhớ tạm.
->>>>>>> test-minizie-project

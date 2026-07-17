@@ -3,21 +3,20 @@ package com.delivery.model;
 import com.delivery.exception.ValidationException;
 
 /**
- * Thực thể cụ thể MenuItem đại diện cho một món ăn/đồ uống phẳng trong hệ thống.
+ * Lớp cha trừu tượng MenuItem đại diện cho định danh chung của mọi loại món ăn
+ * trong hệ thống.
  */
-public class MenuItem {
+public abstract class MenuItem {
     private String id;
-    private String merchantId; 
     private String name;
     private double basePrice;
     private String description;
 
-    public MenuItem(String id, String merchantId, String name, double basePrice, String description) {
+    public MenuItem(String id, String name, double basePrice, String description) {
         if (basePrice <= 0) {
-            throw new ValidationException("Giá bán gốc của món ăn phải lớn hơn 0!", "INVALID_INPUT");
+            throw new ValidationException("The base price of the food item must be greater than 0!", "INVALID_INPUT");
         }
         this.id = id;
-        this.merchantId = merchantId;
         this.name = name;
         this.basePrice = basePrice;
         this.description = description;
@@ -26,9 +25,7 @@ public class MenuItem {
     public MenuItem() {
     }
 
-    public String getDetailDescription() {
-        return String.format("[%s] %s - Giá: %,.0f VNĐ | %s", id, name, basePrice, description);
-    }
+    public abstract String getDetailDescription();
 
     public String getId() {
         return id;
@@ -36,14 +33,6 @@ public class MenuItem {
 
     public void setId(String id) {
         this.id = id;
-    }
-
-    public String getMerchantId() {
-        return merchantId;
-    }
-
-    public void setMerchantId(String merchantId) {
-        this.merchantId = merchantId;
     }
 
     public String getName() {
@@ -60,7 +49,7 @@ public class MenuItem {
 
     public void setBasePrice(double basePrice) {
         if (basePrice <= 0) {
-            throw new ValidationException("Giá bán gốc của món ăn phải lớn hơn 0!", "INVALID_INPUT");
+            throw new ValidationException("The base price of the food item must be greater than 0!", "INVALID_INPUT");
         }
         this.basePrice = basePrice;
     }
