@@ -10,7 +10,7 @@ import com.delivery.services.*;
 // click the <icon src="AllIcons.Actions.Execute"/> icon in the gutter.
 public class Main {
     static void main() {
-        Path storeDPath = Path.of("data","store.csv");
+        Path storeDPath = Path.of("data", "store.csv");
         Path userDataFilePath = Path.of("data", "users.csv");
         Path menuDataFilePath = Path.of("data", "menu.csv");
         Path orderDataFilePath = Path.of("data", "orders.csv");
@@ -23,7 +23,7 @@ public class Main {
         };
         IRepository<MenuItem, String> menuRepository = new GenericsRepository<>() {
             @Override
-            protected String getId(MenuItem entity){
+            protected String getId(MenuItem entity) {
                 return entity.getId();
             }
         };
@@ -33,10 +33,11 @@ public class Main {
                 return entity.getOrderId();
             }
         };
-        
+
         IUserService userService = new UserServiceImpl(userRepository, userDataFilePath);
         IMenuService menuService = new MenuServiceImpl(menuRepository, orderRepository, menuDataFilePath);
-        IOrderService orderService = new OrderServiceImpl(userRepository, menuRepository, orderRepository, orderDataFilePath, userDataFilePath);
+        IOrderService orderService = new OrderServiceImpl(userRepository, menuRepository, orderRepository,
+                orderDataFilePath, userDataFilePath);
 
         AppConsole appConsole = new AppConsole(orderService, userService, menuService);
         appConsole.start();

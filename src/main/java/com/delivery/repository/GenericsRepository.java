@@ -21,7 +21,7 @@ protected abstract ID getId(T entity);
 public void create(T entity){
     ID id = getId(entity);
     if(storage.containsKey(id)){
-        throw new ValidationException("Duplicate id: " + id);
+        throw new ValidationException("Duplicate id in Repo: " + id);
     }
     storage.put(id, entity);
 }

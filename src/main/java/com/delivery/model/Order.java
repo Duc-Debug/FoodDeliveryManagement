@@ -52,7 +52,6 @@ public class Order {
         for (OrderItem item : items) {
             subTotal += item.calculateItemPrice();
         }
-        // Tổng tiền = Tiền hàng + Phí ship - Giảm giá
         this.totalPrice = subTotal + shippingFee - discount;
         if (this.totalPrice < 0) {
             this.totalPrice = 0;

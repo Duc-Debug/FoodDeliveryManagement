@@ -60,7 +60,7 @@ public class UserServiceImpl implements IUserService {
         } catch (IOException ex) {
             user.deduct(amount);
             userRepository.update(userId, user);
-            throw new IOException("Deposit failed: " + ex.getMessage());
+            throw new IOException("Deposit failed: " + ex);
         }
     }
 
