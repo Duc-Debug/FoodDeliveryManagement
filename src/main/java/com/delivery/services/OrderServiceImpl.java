@@ -51,7 +51,7 @@ public class OrderServiceImpl implements IOrderService {
 
     @Override
     public Order checkout(Order order, IDiscountStrategy discountStrategy) {
-        if (order.isPaid()==true || order.getState().equals(OrderState.DELIVERED)
+        if (order.isPaid() == true || order.getState().equals(OrderState.DELIVERED)
                 || order.getState().equals(OrderState.CANCELLED)) {
             throw new ValidationException("This order already checkout");
         }
@@ -60,7 +60,7 @@ public class OrderServiceImpl implements IOrderService {
             discountAmount = discountStrategy.calculateDiscount(order);
         }
         User customer = userRepository.readById(order.getCustomerId());
-        if(customer==null){
+        if (customer == null) {
             throw new NotFoundException("Not Found customer when checkout");
         }
         order.setDiscount(discountAmount);
@@ -82,16 +82,17 @@ public class OrderServiceImpl implements IOrderService {
         } catch (Exception ex) {
             customer.deposit(totalPrice);
             userRepository.update(order.getCustomerId(), customer);
-            
+
             order.setPaid(false);
-            orderRepository.update(order.getOrderId(), order); 
+            orderRepository.update(order.getOrderId(), order);
 
             StoreConfig.addRevenue(-totalPrice);
             StoreConfig.save();
             try {
-            syncOrderToFile(); 
-        } catch (Exception ignored) {}
-           
+                syncOrderToFile();
+            } catch (Exception ignored) {
+            }
+
             throw new ValidationException("Checkout failed due to a system storage error",
                     "PERSISTENCE_ERROR");
         }
@@ -105,10 +106,10 @@ public class OrderServiceImpl implements IOrderService {
         if (order == null) {
             throw new NotFoundException("Order not found: " + orderId);
         }
-        if(newState.equals(OrderState.DELIVERED) && !order.isPaid()){
+        if (newState.equals(OrderState.DELIVERED) && !order.isPaid()) {
             throw new ValidationException("This orders is not paid!!");
         }
-        if(newState.equals(OrderState.CANCELLED)&&order.isPaid()){
+        if (newState.equals(OrderState.CANCELLED) && order.isPaid()) {
             throw new ValidationException("This order is paid!! Not Cancelled");
         }
         OrderState oldState = order.getState();
@@ -212,9 +213,9 @@ public class OrderServiceImpl implements IOrderService {
         OrderState state = OrderState.valueOf(parts[6]);
         int rating = Integer.parseInt(parts[7]);
         String comment = parts[8].equals("NONE") ? "" : parts[8];
-    boolean isPaid = Boolean.parseBoolean(parts[9].trim());
+        boolean isPaid = Boolean.parseBoolean(parts[9].trim());
         return new Order(orderId, customerId, orderItems, state, shippingFee, discount, totalPrice, rating,
-                comment,isPaid);
+                comment, isPaid);
     }
 
     private void loadDataFromCsv() {

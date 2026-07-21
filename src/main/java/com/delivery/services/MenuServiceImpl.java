@@ -4,17 +4,14 @@ import java.io.IOException;
 import java.nio.file.Path;
 import java.util.List;
 
-import com.delivery.exception.InvalidStateException;
-import com.delivery.exception.NotFoundException;
-import com.delivery.exception.ValidationException;
+import com.delivery.exception.*;
 import com.delivery.model.Drink;
 import com.delivery.model.Food;
 import com.delivery.model.MenuItem;
 import com.delivery.model.Order;
 import com.delivery.model.OrderState;
 import com.delivery.repository.IRepository;
-import com.delivery.util.CsvMapper;
-import com.delivery.util.FileHandler;
+import com.delivery.util.*;
 
 public class MenuServiceImpl implements IMenuService {
     private final IRepository<MenuItem, String> menuRepository;
@@ -47,7 +44,7 @@ public class MenuServiceImpl implements IMenuService {
     }
 
     @Override
-    public MenuItem getMenuItemById(String menuId) throws Exception {
+    public MenuItem getMenuItemById(String menuId) throws ValidationException, NotFoundException {
         MenuItem item = menuRepository.readById(menuId);
         if (item == null)
             throw new NotFoundException("Not Found this item " + menuId);
@@ -85,8 +82,7 @@ public class MenuServiceImpl implements IMenuService {
         List<Order> activeOrders = orderRepository.readAll();
         for (Order order : activeOrders) {
             if (order.getState() == OrderState.CREATED || order.getState() == OrderState.PREPARING) {
-                // Kiểm tra xem món ăn chuẩn bị xóa có nằm trong danh sách OrderItem của đơn
-                // hàng không
+
                 boolean isUsed = order.getItems().stream()
                         .anyMatch(orderItem -> orderItem.getMenuItem().getId().equals(menuId));
                 if (isUsed) {
