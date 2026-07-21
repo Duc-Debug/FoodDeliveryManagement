@@ -5,14 +5,7 @@ import java.util.Scanner;
 
 import com.delivery.exception.NotFoundException;
 import com.delivery.exception.ValidationException;
-import com.delivery.model.Cart;
-import com.delivery.model.Drink;
-import com.delivery.model.Food;
-import com.delivery.model.MenuItem;
-import com.delivery.model.Order;
-import com.delivery.model.OrderItem;
-import com.delivery.model.OrderState;
-import com.delivery.model.User;
+import com.delivery.model.*;
 import com.delivery.services.IMenuService;
 import com.delivery.services.IOrderService;
 import com.delivery.services.IUserService;
@@ -165,9 +158,8 @@ public class AppConsole {
             try {
                 String endOrder = readStringInput("Complete order(Yes to break)?");
                 if (endOrder.toLowerCase().equals("yes") || endOrder.toLowerCase().equals("y")) {
-                    // currentUser.setCart(cart);
                     String orderId = "ORD" + (System.currentTimeMillis() % 100000);
-                    // Lay tam phi ship 15k
+                    // TODO: Lay tam phi ship 15k
                     orderService.createOrder(orderId, currentUser.getId(), cart, 15000);
                     newLine();
                     return;
@@ -185,65 +177,70 @@ public class AppConsole {
     }
 
     private void performCheckout() {
-         while(true){
-             try {
-            var orders = orderService.getAllOrders().stream().filter(o -> (o.getCustomerId().equals(currentUser.getId()) )&&( o.getState() ==OrderState.PREPARING )&& !o.isPaid()).toList();
-            System.out.println("The Orders not checkout: ");
-            System.out.print("OrderId: ");
-            for(Order o : orders){
-                System.out.print(o.getOrderId()+"|\t");
-            }
-            System.out.println();
-            if (orders.isEmpty()) {
-                System.out.println("Order is empty!");
+        while (true) {
+            try {
+                var orders = orderService.getAllOrders().stream()
+                        .filter(o -> (o.getCustomerId().equals(currentUser.getId()))
+                                && (o.getState() == OrderState.PREPARING) && !o.isPaid())
+                        .toList();
+                System.out.println("The Orders not checkout: ");
+                System.out.print("OrderId: ");
+                for (Order o : orders) {
+                    System.out.print(o.getOrderId() + "|\t");
+                }
+                System.out.println();
+                if (orders.isEmpty()) {
+                    System.out.println("Order is empty!");
+                    newLine();
+                    return;
+                }
+                String checkoutOrder = readStringInput("Want to Checkout? (No/N) to cancel: ");
+                if ("no".equalsIgnoreCase(checkoutOrder.toLowerCase()) || "N".equals(checkoutOrder.toUpperCase())) {
+                    return;
+                }
+                String choiceOrder = readStringInput("Enter Order id want to pay: ");
+                Order currentOrder = orders.stream().filter(o -> o.getOrderId().equals(choiceOrder)).findFirst()
+                        .orElse(null);
+                if (currentOrder == null) {
+                    System.out.println("Not found Order: " + choiceOrder);
+                    break;
+                }
+                double subTotal = 0;
+                for (OrderItem item : currentOrder.getItems()) {
+                    double itemPrice = item.calculateItemPrice();
+                    subTotal += itemPrice;
+                    System.out.printf("+ %s x %d = %,.0f VNĐ\n", item.getMenuItem().getName(), item.getQuantity(),
+                            itemPrice);
+                }
+                System.out.printf("Subtotal: %,.0f VND | Shipping fee: %,.0f VND\n", subTotal,
+                        currentOrder.getShippingFee());
+
+                String confirm = readStringInput(
+                        "Do you want to confirm and pay? (N/No to cancel | press any key to Yes): ");
+                if (confirm.toUpperCase().equals("N") || confirm.toUpperCase().equals("NO")) {
+                    System.out.println("Checkout process canceled. Your cart remains unchanged.");
+                    return;
+                }
+
+                // TODO: handle to apply discount
+                var promotion = new PercentageDiscount(0.1, 10000);
+                Order order = orderService.checkout(currentOrder, promotion);
+                if (order.getState().equals(OrderState.PREPARING))
+                    order.updateState(OrderState.DELIVERED);
+                System.out.println("\n=========================================");
+                System.out.println(" ORDER PLACED SUCCESSFULLY (CHECKOUT OK)  ");
+                System.out.println("=========================================");
+                System.out.println("Your Order ID: " + order.getOrderId());
+                System.out.printf("Discount applied: -%,.0f VND\n", order.getDiscount());
+                System.out.printf("TOTAL AMOUNT DEDUCTED FROM WALLET: %,.0f VND\n", order.getTotalPrice());
+                System.out.println("Current Status: " + order.getState().name());
                 newLine();
-                return;
-            }
-             String checkoutOrder = readStringInput("Want to Checkout? (No/N) to cancel: ");
-            if("no".equalsIgnoreCase(checkoutOrder.toLowerCase())||"N".equals(checkoutOrder.toUpperCase())){
-                return;
-            }
-           String choiceOrder = readStringInput("Enter Order id want to pay: ");
-           Order currentOrder = orders.stream().filter(o->o.getOrderId().equals(choiceOrder)).findFirst().orElse(null);
-           if(currentOrder == null){
-            System.out.println("Not found Order: "+choiceOrder);
-            break;
-           }
-            double subTotal = 0;
-            for (OrderItem item : currentOrder.getItems()) {
-                double itemPrice = item.calculateItemPrice();
-                subTotal += itemPrice;
-                System.out.printf("+ %s x %d = %,.0f VNĐ\n", item.getMenuItem().getName(), item.getQuantity(),
-                        itemPrice);
-            }
-            System.out.printf("Subtotal: %,.0f VND | Shipping fee: %,.0f VND\n", subTotal, currentOrder.getShippingFee());
 
-            String confirm = readStringInput(
-                    "Do you want to confirm and pay? (N/No to cancel | press any key to Yes): ");
-            if (confirm.toUpperCase().equals("N")||confirm.toUpperCase().equals("NO")) {
-                System.out.println("Checkout process canceled. Your cart remains unchanged.");
-                return;
-            }
+            } catch (ValidationException e) {
+                System.out.println("\n[TRANSACTION FAILED] System processing error: " + e.getLocalizedMessage());
 
-            // TODO: handle to apply discount
-            var promotion = new PercentageDiscount(0.1, 10000);
-            Order order = orderService.checkout(currentOrder, promotion);
-            if(order.getState().equals(OrderState.PREPARING))
-                order.updateState(OrderState.DELIVERED);
-            System.out.println("\n=========================================");
-            System.out.println("   🎉 ORDER PLACED SUCCESSFULLY (CHECKOUT OK)  ");
-            System.out.println("=========================================");
-            System.out.println("Your Order ID: " + order.getOrderId());
-            System.out.printf("Discount applied: -%,.0f VND\n", order.getDiscount());
-            System.out.printf("TOTAL AMOUNT DEDUCTED FROM WALLET: %,.0f VND\n", order.getTotalPrice());
-            System.out.println("Current Status: " + order.getState().name());
-            newLine();
-        
-        } catch (ValidationException e) {
-            System.out.println("\n[TRANSACTION FAILED] System processing error: " + e.getLocalizedMessage());
-            
+            }
         }
-    }
 
     }
 
@@ -281,8 +278,10 @@ public class AppConsole {
             // Filter by the current customer's ID
             if (order.getCustomerId().equals(currentUser.getId())) {
                 hasOrder = true;
-                System.out.printf("Order: %-8s | Total Paid: %, -10.0f VND | Status: %-10s | Rating: %d Stars | IsPaid: %b\n",
-                        order.getOrderId(), order.getTotalPrice(), order.getState().name(), order.getRating(),order.isPaid());
+                System.out.printf(
+                        "Order: %-8s | Total Paid: %, -10.0f VND | Status: %-10s | Rating: %d Stars | IsPaid: %b\n",
+                        order.getOrderId(), order.getTotalPrice(), order.getState().name(), order.getRating(),
+                        order.isPaid());
             }
         }
         if (!hasOrder) {
@@ -347,7 +346,7 @@ public class AppConsole {
                         break;
                     case 0:
                         System.out.println("Logging out Admin account...");
-                        return; // Thoát ra ngoài handleAdmin()
+                        return;
                     default:
                         System.out.println("Invalid choice!");
                         break;
